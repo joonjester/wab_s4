@@ -1,11 +1,12 @@
 package main
 
 import (
-	"code_first/controller"
+	"code_first/server"
 	"fmt"
 )
 
 func main() {
 	fmt.Println("Code First application is getting started")
-	controller.SetUpServer()
+
+	server.Router()
 }
