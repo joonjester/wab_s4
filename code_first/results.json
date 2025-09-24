@@ -1,0 +1,9 @@
+{
+  "feature1": {
+    "test_coverage": "79.95%",
+    "mutation_score": "93.75%"
+    "benchmark_score": "236.367ns/op"
+    "cyclo_score": "3.28"
+    "maintainability_index": "53.18"
+  }
+}
