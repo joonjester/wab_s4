@@ -17,4 +17,3 @@ func main() {
 
 	server.Router()
 }
-

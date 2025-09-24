@@ -43,7 +43,11 @@ func deposit(w http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	acc.Deposit(transaction.Amount)
+	err = acc.Deposit(transaction.Amount)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
 }
 
 func transfer(w http.ResponseWriter, req *http.Request) {
@@ -60,7 +64,12 @@ func transfer(w http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	acc.Transfer(transaction.Amount, transaction.To)
+	err = acc.Transfer(transaction.Amount, transaction.To)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+
 }
 
 func withdraw(w http.ResponseWriter, req *http.Request) {
