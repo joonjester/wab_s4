@@ -13,7 +13,7 @@ func BenchmarkDeposit(b *testing.B) {
 	}
 
 	b.ResetTimer()
-	for i := 0; i < b.N; i++ {
+	for b.Loop() {
 		account.Deposit(100.0)
 	}
 }
@@ -28,7 +28,7 @@ func BenchmarkWithdraw(b *testing.B) {
 	}
 
 	b.ResetTimer()
-	for i := 0; i < b.N; i++ {
+	for b.Loop() {
 		account.Withdraw(50.0)
 	}
 }
@@ -42,7 +42,15 @@ func BenchmarkTransfer(b *testing.B) {
 	}
 
 	b.ResetTimer()
-	for i := 0; i < b.N; i++ {
+	for b.Loop() {
 		account.Transfer(100.0, "recipient")
+	}
+}
+
+func BenchmarkConversion(b *testing.B) {
+
+	b.ResetTimer()
+	for b.Loop() {
+		ConvertCurrency(10000.0, EUR, USD)
 	}
 }
