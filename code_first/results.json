@@ -1,9 +1,18 @@
 {
   "feature1": {
     "test_coverage": "79.95%",
-    "mutation_score": "93.75%"
-    "benchmark_score": "236.367ns/op"
-    "cyclo_score": "3.28"
-    "maintainability_index": "53.18"
-  }
+    "mutation_score": "84.21%",
+    "benchmark_score": "236.367ns/op",
+    "benchmark_sec": "9.053s",
+    "cyclo_score": "3.28",
+    "maintainability_index": "53.18",
+  },
+  "feature2": {
+    "test_coverage": "72%",
+    "mutation_score": "72,7%",
+    "benchmark_score": "85.567.927 ns/op",
+    "benchmark_sec": "9.457s",
+    "cyclo_score": "3.41",
+    "maintainability_index": "52.81",
+  },
 }

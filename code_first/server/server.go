@@ -12,8 +12,10 @@ import (
 var acc *bank.Account
 
 type Transaction struct {
-	Amount float64 `json:"amount"`
-	To     string  `json:"to"`
+	Amount         float64       `json:"amount"`
+	To             string        `json:"to"`
+	BaseCurrency   bank.Currency `json:"base"`
+	TargetCurrency bank.Currency `json:"target"`
 }
 
 func showAccountDetails(w http.ResponseWriter, req *http.Request) {
@@ -93,6 +95,33 @@ func withdraw(w http.ResponseWriter, req *http.Request) {
 	}
 }
 
+func convert(w http.ResponseWriter, req *http.Request) {
+	if req.Method != http.MethodPost {
+		http.Error(w, "Invalid method", http.StatusMethodNotAllowed)
+		return
+	}
+
+	var transaction Transaction
+
+	err := json.NewDecoder(req.Body).Decode(&transaction)
+	if err != nil {
+		http.Error(w, "Invalid Json", http.StatusBadRequest)
+		return
+	}
+
+	converted, err := bank.ConvertCurrency(transaction.Amount, transaction.BaseCurrency, transaction.TargetCurrency)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	err = acc.Withdraw(*converted)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+}
+
 func InitializeAcc(args []string) error {
 	var accType bank.AccountType
 	var argsLenght int
@@ -138,7 +167,7 @@ func Router() {
 	http.HandleFunc("/deposit", deposit)
 	http.HandleFunc("/transfer", transfer)
 	http.HandleFunc("/withdraw", withdraw)
+	http.HandleFunc("/convert", convert)
 
 	http.ListenAndServe(":8090", nil)
 }
-
