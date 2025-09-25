@@ -4,6 +4,7 @@ import (
 	"code_first/bank"
 	"encoding/json"
 	"errors"
+	"fmt"
 	"net/http"
 	"strconv"
 	"strings"
@@ -24,7 +25,12 @@ func showAccountDetails(w http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	err := acc.ShowAccountDetails(w, req.URL.Query().Get("name"))
+	request := req.URL.Query()
+
+	err := acc.ShowAccountDetails(w,
+		request.Get("name"),
+		request.Get("criteria"),
+		request.Get("filter"))
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
@@ -68,6 +74,7 @@ func transfer(w http.ResponseWriter, req *http.Request) {
 
 	err = acc.Transfer(transaction.Amount, transaction.To)
 	if err != nil {
+		fmt.Println(err)
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
@@ -158,6 +165,7 @@ func InitializeAcc(args []string) error {
 		Overdraw:    overdraw,
 	}
 
+	bank.InitialAccounts()
 	return nil
 }
 
