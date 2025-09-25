@@ -1,8 +1,10 @@
 package bank
 
 import (
+	"errors"
 	"fmt"
 	"io"
+	"strconv"
 	"strings"
 	"time"
 )
@@ -13,17 +15,15 @@ type AccountType string
 const (
 	Deposit  TransactionType = "deposit"
 	Withdraw TransactionType = "withdraw"
-	Fee      TransactionType = "fee"
 	Transfer TransactionType = "transfer"
 	Giro     AccountType     = "giro"
 	Savings  AccountType     = "savings"
 )
 
 type Transactions struct {
-	Time    time.Time
-	Purpose string
-	Amount  float64
-	Type    TransactionType
+	Time   time.Time
+	Amount float64
+	Type   TransactionType
 }
 
 type Account struct {
@@ -35,7 +35,7 @@ type Account struct {
 	Transactions []Transactions
 }
 
-var accounts = []Account{
+var initialAccounts = []Account{
 	{
 		Id:          "002",
 		Name:        "Alice",
@@ -52,6 +52,13 @@ var accounts = []Account{
 	},
 }
 
+func InitialAccounts() {
+	for _, acc := range initialAccounts {
+		fmt.Println(acc)
+		AddOrUpdateAcc(&acc)
+	}
+}
+
 func (account *Account) Deposit(amount float64) error {
 	if amount <= 0 {
 		return fmt.Errorf("Amount should be larger then 0")
@@ -59,7 +66,8 @@ func (account *Account) Deposit(amount float64) error {
 
 	account.Balance += amount
 
-	account.addTransaction(amount, "Deposit", Deposit)
+	account.addTransaction(amount, Deposit)
+	AddOrUpdateAcc(account)
 	return nil
 }
 
@@ -79,7 +87,8 @@ func (account *Account) Withdraw(amount float64) error {
 
 	account.Balance -= amount
 
-	account.addTransaction(amount, "Get Money", Withdraw)
+	account.addTransaction(amount, Withdraw)
+	AddOrUpdateAcc(account)
 	return nil
 }
 
@@ -92,62 +101,104 @@ func (account *Account) Transfer(amount float64, to string) error {
 		return fmt.Errorf("Insufficient funds")
 	}
 
-	acc := searchingAcc(to)
-
-	if acc == nil {
-		return fmt.Errorf("No account found")
+	recipientAcc, err := searchingAcc(to)
+	if err != nil {
+		return fmt.Errorf("unexcepteced error: %v\n", err)
 	}
 
 	account.Balance -= amount
-	acc.Balance += amount
+	recipientAcc.Balance += amount
 
-	account.addTransaction(amount, "send it to "+to, Transfer)
-	acc.addTransaction(amount, `received from {account.Name}`, Transfer)
+	account.addTransaction(amount, Transfer)
+	recipientAcc.addTransaction(amount, Transfer)
+	AddOrUpdateAcc(account)
+	AddOrUpdateAcc(recipientAcc)
 	return nil
 }
 
-func (account *Account) ShowAccountDetails(w io.Writer, name string) error {
+func (account *Account) ShowAccountDetails(w io.Writer, name string, criteria, filter string) error {
+	acc := account
 
-	if name == "" {
-		fmt.Fprintf(w, "Balance: %.2f\n", account.Balance)
-		for _, txn := range account.Transactions {
-			fmt.Fprintf(w, "Time: %v, Purpose: %s, Amount: %.2f, Type: %v\n",
-				txn.Time, txn.Purpose, txn.Amount, txn.Type)
+	if name != "" {
+		var err error
+		acc, err = searchingAcc(name)
+		if err != nil {
+			return fmt.Errorf("unexcepteced error: %v\n", err)
 		}
-		return nil
-	}
-
-	acc := searchingAcc(name)
-	if acc == nil {
-		return fmt.Errorf("No account found with the name of: %s\n", name)
 	}
 
 	fmt.Fprintf(w, "Balance: %.2f\n", acc.Balance)
 	for _, txn := range acc.Transactions {
-		fmt.Fprintf(w, "Time: %v, Purpose: %s, Amount: %.2f, Type: %v\n",
-			txn.Time, txn.Purpose, txn.Amount, txn.Type)
+		if filterTo(txn, criteria, filter) {
+			fmt.Fprintf(w, "Time: %v, Amount: %.2f, Type: %v\n",
+				txn.Time, txn.Amount, txn.Type)
+		}
 	}
 
 	return nil
 }
 
-func searchingAcc(name string) *Account {
+var loadAccFunc func() ([]Account, error) = LoadAcc
 
-	for i := range accounts {
-		if strings.EqualFold(accounts[i].Name, name) {
-			return &accounts[i]
+func searchingAcc(name string) (*Account, error) {
+	accounts, err := loadAccFunc()
+	if err != nil {
+		return nil, err
+	}
+
+	for i, account := range accounts {
+		if strings.EqualFold(account.Name, name) {
+			return &accounts[i], nil
 		}
 		continue
 	}
 
-	return nil
+	return nil, errors.New("could not find account")
 }
 
-func (account *Account) addTransaction(amount float64, purpose string, tt TransactionType) {
+func (account *Account) addTransaction(amount float64, tt TransactionType) {
 	account.Transactions = append(account.Transactions, Transactions{
-		Time:    time.Now(),
-		Purpose: purpose,
-		Amount:  amount,
-		Type:    tt,
+		Time:   time.Now(),
+		Amount: amount,
+		Type:   tt,
 	})
+}
+
+func filterTo(txn Transactions, criteria, filter string) bool {
+	switch strings.ToLower(criteria) {
+	case "type":
+		return txn.Type == TransactionType(filter)
+
+	case "amount":
+		amount, err := strconv.ParseFloat(filter, 64)
+		if err != nil {
+			return false
+		}
+		return txn.Amount == amount
+
+	case "day":
+		day, err := strconv.Atoi(filter)
+		if err != nil {
+			return false
+		}
+		return txn.Time.Day() == day
+
+	case "month":
+		month, err := strconv.Atoi(filter)
+		if err != nil {
+			return false
+		}
+		return txn.Time.Month() == time.Month(month)
+
+	case "year":
+		year, err := strconv.Atoi(filter)
+		if err != nil {
+			return false
+		}
+		return txn.Time.Year() == year
+	case "":
+		return true
+	default:
+		return false
+	}
 }

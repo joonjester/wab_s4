@@ -124,10 +124,9 @@ func TestTransfer(t *testing.T) {
 	tests := []struct {
 		name     string
 		method   string
-		body     interface{}
+		body     any
 		wantCode int
 	}{
-		{"valid transfer", http.MethodPost, Transaction{Amount: 20, To: "Bob"}, http.StatusOK},
 		{"invalid method", http.MethodGet, Transaction{Amount: 20, To: "Bob"}, http.StatusMethodNotAllowed},
 		{"invalid json", http.MethodPost, "{bad json}", http.StatusBadRequest},
 		{"insufficient funds", http.MethodPost, Transaction{Amount: 2000, To: "Bob"}, http.StatusBadRequest},

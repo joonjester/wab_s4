@@ -1,0 +1,48 @@
+[
+  {
+    "Id": "002",
+    "Name": "Alice",
+    "Balance": 1000,
+    "Overdraw": 100,
+    "AccountType": "giro",
+    "Transactions": null
+  },
+  {
+    "Id": "003",
+    "Name": "Bob",
+    "Balance": 530,
+    "Overdraw": 100,
+    "AccountType": "savings",
+    "Transactions": [
+      {
+        "Time": "2025-09-25T21:14:56.594033+02:00",
+        "Amount": 10,
+        "Type": "transfer"
+      },
+      {
+        "Time": "2025-09-25T21:18:33.150983+02:00",
+        "Amount": 20,
+        "Type": "transfer"
+      }
+    ]
+  },
+  {
+    "Id": "0001",
+    "Name": "tim",
+    "Balance": 970,
+    "Overdraw": 100,
+    "AccountType": "savings",
+    "Transactions": [
+      {
+        "Time": "2025-09-25T21:14:56.594033+02:00",
+        "Amount": 10,
+        "Type": "transfer"
+      },
+      {
+        "Time": "2025-09-25T21:18:33.150982+02:00",
+        "Amount": 20,
+        "Type": "transfer"
+      }
+    ]
+  }
+]

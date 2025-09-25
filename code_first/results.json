@@ -15,4 +15,12 @@
     "cyclo_score": "3.41",
     "maintainability_index": "52.81",
   },
+  "feature3": {
+    "test_coverage": "66.35%",
+    "mutation_score": "82.72%",
+    "benchmark_score": "43.019.997 ns/op",
+      "benchmark_sec": "18.9s",
+    "cyclo_score": "3.79",
+    "maintainability_index": "52.02",
+  },
 }
