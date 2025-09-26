@@ -1,0 +1,7 @@
+linters:
+  enable:
+    - maintidx
+linters-settings:
+  maintidx:
+    under: 100
+    verbose: true
