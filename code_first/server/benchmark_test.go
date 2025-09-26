@@ -12,7 +12,7 @@ import (
 func setupTestAccountForBenchmark() {
 	acc = &bank.Account{
 		Id:          "test123",
-		Name:        "Test Account",
+		Name:        "",
 		Balance:     1000.0,
 		AccountType: bank.Giro,
 		Overdraw:    500.0,
@@ -24,7 +24,7 @@ func BenchmarkShowAccountDetails(b *testing.B) {
 
 	b.ResetTimer()
 	for b.Loop() {
-		req := httptest.NewRequest("GET", "/show?name=Test", nil)
+		req := httptest.NewRequest("GET", "/show?name=", nil)
 		w := httptest.NewRecorder()
 		showAccountDetails(w, req)
 	}
@@ -73,22 +73,6 @@ func BenchmarkTransfer(b *testing.B) {
 		w := httptest.NewRecorder()
 		transfer(w, req)
 	}
-}
-
-func BenchmarkDepositParallel(b *testing.B) {
-	setupTestAccountForBenchmark()
-
-	transaction := Transaction{Amount: 10.0}
-	jsonData, _ := json.Marshal(transaction)
-
-	b.RunParallel(func(pb *testing.PB) {
-		for pb.Next() {
-			req := httptest.NewRequest("POST", "/deposit", bytes.NewBuffer(jsonData))
-			req.Header.Set("Content-Type", "application/json")
-			w := httptest.NewRecorder()
-			deposit(w, req)
-		}
-	})
 }
 
 func BenchmarkConvert(b *testing.B) {

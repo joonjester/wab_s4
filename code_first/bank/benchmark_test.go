@@ -7,7 +7,7 @@ import (
 func BenchmarkDeposit(b *testing.B) {
 	account := &Account{
 		Id:          "123",
-		Name:        "Test",
+		Name:        "",
 		Balance:     1000.0,
 		AccountType: Giro,
 	}
@@ -21,7 +21,7 @@ func BenchmarkDeposit(b *testing.B) {
 func BenchmarkWithdraw(b *testing.B) {
 	account := &Account{
 		Id:          "123",
-		Name:        "Test",
+		Name:        "",
 		Balance:     10000.0,
 		AccountType: Giro,
 		Overdraw:    500.0,
@@ -36,7 +36,7 @@ func BenchmarkWithdraw(b *testing.B) {
 func BenchmarkTransfer(b *testing.B) {
 	account := &Account{
 		Id:          "123",
-		Name:        "Test",
+		Name:        "",
 		Balance:     10000.0,
 		AccountType: Giro,
 	}

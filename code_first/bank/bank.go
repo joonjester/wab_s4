@@ -54,7 +54,6 @@ var initialAccounts = []Account{
 
 func InitialAccounts() {
 	for _, acc := range initialAccounts {
-		fmt.Println(acc)
 		AddOrUpdateAcc(&acc)
 	}
 }
@@ -73,7 +72,7 @@ func (account *Account) Deposit(amount float64) error {
 
 func (account *Account) Withdraw(amount float64) error {
 	if amount <= 0 {
-		return fmt.Errorf("mmount should be larger then 0")
+		return fmt.Errorf("amount should be larger then 0")
 	}
 
 	overdraw := 0.0

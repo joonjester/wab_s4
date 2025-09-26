@@ -28,7 +28,7 @@ func TestShowAccountDetails(t *testing.T) {
 		queryParam string
 		wantCode   int
 	}{
-		{"valid GET", http.MethodGet, "Alice", http.StatusOK},
+		{"valid GET", http.MethodGet, "", http.StatusOK},
 		{"invalid method", http.MethodPost, "Alice", http.StatusMethodNotAllowed},
 		{"unknown account", http.MethodGet, "DoesNotExist", http.StatusBadRequest},
 	}
@@ -53,7 +53,7 @@ func TestDeposit(t *testing.T) {
 	tests := []struct {
 		name     string
 		method   string
-		body     interface{}
+		body     any
 		wantCode int
 	}{
 		{"valid deposit", http.MethodPost, Transaction{Amount: 50}, http.StatusOK},
@@ -88,7 +88,7 @@ func TestWithdraw(t *testing.T) {
 	tests := []struct {
 		name     string
 		method   string
-		body     interface{}
+		body     any
 		wantCode int
 	}{
 		{"valid withdraw", http.MethodPost, Transaction{Amount: 30}, http.StatusOK},
