@@ -6,22 +6,22 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"strings"
-	"tdd/task"
+	"tdd/review"
 	"testing"
 )
 
 func setup() {
-	tm = task.NewTaskManager()
+	rm = review.NewReviewManager()
 }
 
-func TestAddTaskHandler(t *testing.T) {
+func TestAddReviewHandler(t *testing.T) {
 	tests := []struct {
 		name       string
 		method     string
 		body       string
 		wantStatus int
 	}{
-		{"Success", http.MethodPost, `{"Title":"Test","Description":"desc","Labels":["UNI"]}`, http.StatusCreated},
+		{"Success", http.MethodPost, `{"Description":"Test","Recommend": "Not Recommend", "Stars": 5}`, http.StatusCreated},
 		{"Wrong Method", http.MethodGet, ``, http.StatusMethodNotAllowed},
 		{"Invalid JSON", http.MethodPost, `{bad-json`, http.StatusBadRequest},
 	}
@@ -32,7 +32,7 @@ func TestAddTaskHandler(t *testing.T) {
 			req := httptest.NewRequest(tt.method, "/add", strings.NewReader(tt.body))
 			w := httptest.NewRecorder()
 
-			addTaskHandler(w, req)
+			addReviewHandler(w, req)
 
 			if w.Code != tt.wantStatus {
 				t.Errorf("got %d, want %d", w.Code, tt.wantStatus)
@@ -41,7 +41,7 @@ func TestAddTaskHandler(t *testing.T) {
 	}
 }
 
-func TestGetTaskHandler(t *testing.T) {
+func TestGetReviewHandler(t *testing.T) {
 	tests := []struct {
 		name       string
 		method     string
@@ -54,11 +54,11 @@ func TestGetTaskHandler(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			setup()
-			tm.AddTask("Test", "desc", []string{"UNI"})
+			rm.AddReview("Desc", "Recommend", 5)
 			req := httptest.NewRequest(tt.method, "/get", nil)
 			w := httptest.NewRecorder()
 
-			getTaskHandler(w, req)
+			getReviewHandler(w, req)
 
 			if w.Code != tt.wantStatus {
 				t.Errorf("got %d, want %d", w.Code, tt.wantStatus)
@@ -67,29 +67,29 @@ func TestGetTaskHandler(t *testing.T) {
 	}
 }
 
-func TestUpdateTaskHandler(t *testing.T) {
+func TestUpdateReviewHandler(t *testing.T) {
 	tests := []struct {
 		name       string
 		method     string
 		body       any
 		wantStatus int
 	}{
-		{"Success", http.MethodPut, task.Task{ID: 1, Status: "done"}, http.StatusOK},
+		{"Success", http.MethodPut, review.Review{ID: 1, Stars: 5}, http.StatusOK},
 		{"Wrong Method", http.MethodGet, nil, http.StatusMethodNotAllowed},
 		{"Invalid JSON", http.MethodPut, "{bad-json", http.StatusBadRequest},
-		{"Not Found", http.MethodPut, task.Task{ID: 999, Status: "done"}, http.StatusInternalServerError},
+		{"Not Found", http.MethodPut, review.Review{ID: 999, Stars: 5}, http.StatusInternalServerError},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			setup()
-			tm.AddTask("Test", "desc", []string{"UNI"})
+			rm.AddReview("Desc", "Not Recommend", 1)
 
 			var bodyBytes []byte
 			switch v := tt.body.(type) {
 			case string:
 				bodyBytes = []byte(v)
-			case task.Task:
+			case review.Review:
 				bodyBytes, _ = json.Marshal(v)
 			case nil:
 				bodyBytes = nil
@@ -98,7 +98,7 @@ func TestUpdateTaskHandler(t *testing.T) {
 			req := httptest.NewRequest(tt.method, "/update", bytes.NewReader(bodyBytes))
 			w := httptest.NewRecorder()
 
-			updateTaskHandler(w, req)
+			updateReviewHandler(w, req)
 
 			if w.Code != tt.wantStatus {
 				t.Errorf("got %d, want %d", w.Code, tt.wantStatus)
@@ -107,7 +107,7 @@ func TestUpdateTaskHandler(t *testing.T) {
 	}
 }
 
-func TestDeleteTaskHandler(t *testing.T) {
+func TestDeleteReviewHandler(t *testing.T) {
 	tests := []struct {
 		name       string
 		method     string
@@ -123,12 +123,12 @@ func TestDeleteTaskHandler(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			setup()
-			tm.AddTask("Test", "desc", []string{"UNI"})
+			rm.AddReview("Desc", "Recommend", 5)
 
 			req := httptest.NewRequest(tt.method, "/delete?id="+tt.id, nil)
 			w := httptest.NewRecorder()
 
-			deleteTaskHandler(w, req)
+			deleteReviewHandler(w, req)
 
 			if w.Code != tt.wantStatus {
 				t.Errorf("got %d, want %d", w.Code, tt.wantStatus)

@@ -6,14 +6,14 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"strconv"
-	"tdd/task"
+	"tdd/review"
 	"testing"
 )
 
-func BenchmarkAddTaskHandler(b *testing.B) {
-	tm = task.NewTaskManager()
+func BenchmarkAddReviewHandler(b *testing.B) {
+	rm = review.NewReviewManager()
 
-	payload := task.Task{Title: "BenchTask", Description: "desc", Labels: []string{"UNI"}}
+	payload := review.Review{Description: "desc", Recommend: "Recommend", Stars: 5}
 	data, _ := json.Marshal(payload)
 
 	b.ResetTimer() // reset before measurement
@@ -21,7 +21,7 @@ func BenchmarkAddTaskHandler(b *testing.B) {
 		req := httptest.NewRequest(http.MethodPost, "/add", bytes.NewReader(data))
 		w := httptest.NewRecorder()
 
-		addTaskHandler(w, req)
+		addReviewHandler(w, req)
 
 		if w.Code != http.StatusCreated {
 			b.Fatalf("unexpected status: got %d", w.Code)
@@ -29,17 +29,17 @@ func BenchmarkAddTaskHandler(b *testing.B) {
 	}
 }
 
-func BenchmarkGetTaskHandler(b *testing.B) {
-	tm = task.NewTaskManager()
-	// Fülle TaskManager einmal vorab
-	tm.AddTask("BenchTask", "desc", []string{"UNI"})
+func BenchmarkGetReviewHandler(b *testing.B) {
+	rm = review.NewReviewManager()
+	// Fülle ReviewManager einmal vorab
+	rm.AddReview("Desc", "Not Recommend", 1)
 
 	req := httptest.NewRequest(http.MethodGet, "/get", nil)
 
 	b.ResetTimer()
 	for b.Loop() {
 		w := httptest.NewRecorder()
-		getTaskHandler(w, req)
+		getReviewHandler(w, req)
 
 		if w.Code != http.StatusOK {
 			b.Fatalf("unexpected status: got %d", w.Code)
@@ -47,11 +47,11 @@ func BenchmarkGetTaskHandler(b *testing.B) {
 	}
 }
 
-func BenchmarkUpdateTaskHandler(b *testing.B) {
-	tm = task.NewTaskManager()
-	t := tm.AddTask("BenchTask", "desc", []string{"UNI"})
+func BenchmarkUpdateReviewHandler(b *testing.B) {
+	rm = review.NewReviewManager()
+	r, _ := rm.AddReview("Desc", "Recommend", 5)
 
-	payload := task.Task{ID: t.ID, Status: "done"}
+	payload := review.Review{ID: r.ID, Recommend: r.Recommend, Stars: r.Stars}
 	data, _ := json.Marshal(payload)
 
 	b.ResetTimer()
@@ -59,7 +59,7 @@ func BenchmarkUpdateTaskHandler(b *testing.B) {
 		req := httptest.NewRequest(http.MethodPut, "/update", bytes.NewReader(data))
 		w := httptest.NewRecorder()
 
-		updateTaskHandler(w, req)
+		updateReviewHandler(w, req)
 
 		if w.Code != http.StatusOK {
 			b.Fatalf("unexpected status: got %d", w.Code)
@@ -67,18 +67,18 @@ func BenchmarkUpdateTaskHandler(b *testing.B) {
 	}
 }
 
-func BenchmarkDeleteTaskHandler(b *testing.B) {
-	tm = task.NewTaskManager()
-	t := tm.AddTask("BenchTask", "desc", []string{"UNI"})
+func BenchmarkDeleteReviewHandler(b *testing.B) {
+	rm = review.NewReviewManager()
+	r, _ := rm.AddReview("Desc", "Recommend", 5)
 
-	url := "/delete?id=" + strconv.Itoa(t.ID)
+	url := "/delete?id=" + strconv.Itoa(r.ID)
 
 	b.ResetTimer()
 	for b.Loop() {
 		req := httptest.NewRequest(http.MethodDelete, url, nil)
 		w := httptest.NewRecorder()
 
-		deleteTaskHandler(w, req)
+		deleteReviewHandler(w, req)
 
 		if w.Code != http.StatusOK {
 			b.Fatalf("unexpected status: got %d", w.Code)
@@ -88,25 +88,25 @@ func BenchmarkDeleteTaskHandler(b *testing.B) {
 
 func BenchmarkFullApplication(b *testing.B) {
 	mux := http.NewServeMux()
-	mux.HandleFunc("/add", addTaskHandler)
-	mux.HandleFunc("/get", getTaskHandler)
-	mux.HandleFunc("/delete", deleteTaskHandler)
-	mux.HandleFunc("/update", updateTaskHandler)
+	mux.HandleFunc("/add", addReviewHandler)
+	mux.HandleFunc("/get", getReviewHandler)
+	mux.HandleFunc("/delete", deleteReviewHandler)
+	mux.HandleFunc("/update", updateReviewHandler)
 
 	server := httptest.NewServer(mux)
 	defer server.Close()
 
-	todo := task.Task{Title: "Test", Description: "Test the test", Labels: []string{"Uni"}}
-	todoInProgress := task.Task{ID: 1, Status: task.InProgress}
-	todoData, _ := json.Marshal(todo)
-	todoJsonInProgress, _ := json.Marshal(todoInProgress)
+	reviewed := review.Review{Description: "Test the test", Recommend: "Recommend", Stars: 5}
+	reviewedNotRecomment := review.Review{Description: "Test the test", Recommend: "Not Recommend", Stars: 1}
+	reviewedData, _ := json.Marshal(reviewed)
+	updatedReview, _ := json.Marshal(reviewedNotRecomment)
 
 	b.ResetTimer()
 	for b.Loop() {
-		resp, _ := http.Post(server.URL+"/add", "application/json", bytes.NewBuffer(todoData))
+		resp, _ := http.Post(server.URL+"/add", "application/json", bytes.NewBuffer(reviewedData))
 		resp.Body.Close()
 
-		req, _ := http.NewRequest(http.MethodPut, server.URL+"/update", bytes.NewBuffer(todoJsonInProgress))
+		req, _ := http.NewRequest(http.MethodPut, server.URL+"/update", bytes.NewBuffer(updatedReview))
 		req.Header.Set("Content-Type", "application/json")
 		resp, _ = http.DefaultClient.Do(req)
 		resp.Body.Close()

@@ -4,61 +4,53 @@ import (
 	"encoding/json"
 	"net/http"
 	"strconv"
-	"tdd/task"
+	"tdd/review"
 )
 
-var tm *task.TaskManager
+var rm *review.ReviewManager
 
-func isTaskEmpty(t task.Task) bool {
-	return t.ID == 0 &&
-		t.Title == "" &&
-		t.Description == "" &&
-		t.Status == "" &&
-		len(t.Labels) == 0
-}
-
-func addTaskHandler(w http.ResponseWriter, req *http.Request) {
+func addReviewHandler(w http.ResponseWriter, req *http.Request) {
 	if req.Method != http.MethodPost {
 		http.Error(w, "Invalid method", http.StatusMethodNotAllowed)
 		return
 	}
 
-	var t task.Task
-	if err := json.NewDecoder(req.Body).Decode(&t); err != nil {
+	var r review.Review
+	if err := json.NewDecoder(req.Body).Decode(&r); err != nil {
 		http.Error(w, "Invalid json", http.StatusBadRequest)
 		return
 	}
 
-	newTask := tm.AddTask(t.Title, t.Description, t.Labels)
-	if isTaskEmpty(newTask) {
-		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
-		return
+	newReview, err := rm.AddReview(r.Description, r.Recommend, r.Stars)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
 	}
 
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusCreated)
-	json.NewEncoder(w).Encode(newTask)
+	json.NewEncoder(w).Encode(newReview)
 }
 
-func updateTaskHandler(w http.ResponseWriter, req *http.Request) {
+func updateReviewHandler(w http.ResponseWriter, req *http.Request) {
 	if req.Method != http.MethodPut {
 		http.Error(w, "Invalid method", http.StatusMethodNotAllowed)
 		return
 	}
 
-	var t task.Task
-	if err := json.NewDecoder(req.Body).Decode(&t); err != nil {
+	var r review.Review
+
+	if err := json.NewDecoder(req.Body).Decode(&r); err != nil {
 		http.Error(w, "Invalid json", http.StatusBadRequest)
 		return
 	}
 
-	if err := tm.UpdateStatus(t.ID, t.Status); err != nil {
+	if err := rm.UpdateStatus(r.ID, r.Stars, r.Description, r.Recommend); err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
 }
 
-func deleteTaskHandler(w http.ResponseWriter, req *http.Request) {
+func deleteReviewHandler(w http.ResponseWriter, req *http.Request) {
 	if req.Method != http.MethodDelete {
 		http.Error(w, "Invalid method", http.StatusMethodNotAllowed)
 		return
@@ -71,29 +63,29 @@ func deleteTaskHandler(w http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	if err := tm.DeleteTask(id); err != nil {
+	if err := rm.DeleteReview(id); err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
 }
 
-func getTaskHandler(w http.ResponseWriter, req *http.Request) {
+func getReviewHandler(w http.ResponseWriter, req *http.Request) {
 	if req.Method != http.MethodGet {
 		http.Error(w, "Invalid method", http.StatusMethodNotAllowed)
 		return
 	}
 
 	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(tm.GetTasks())
+	json.NewEncoder(w).Encode(rm.GetReviews())
 }
 
 func Rounter() {
-	tm = task.NewTaskManager()
+	rm = review.NewReviewManager()
 
-	http.HandleFunc("/add", addTaskHandler)
-	http.HandleFunc("/get", getTaskHandler)
-	http.HandleFunc("/update", updateTaskHandler)
-	http.HandleFunc("/delete", deleteTaskHandler)
+	http.HandleFunc("/add", addReviewHandler)
+	http.HandleFunc("/get", getReviewHandler)
+	http.HandleFunc("/update", updateReviewHandler)
+	http.HandleFunc("/delete", deleteReviewHandler)
 
 	http.ListenAndServe(":8080", nil)
 }
