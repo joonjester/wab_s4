@@ -6,7 +6,7 @@ import (
 	"os"
 )
 
-const dbFile = "acc_db.json"
+var dbFile = "acc_db.json"
 
 func AddOrUpdateAcc(newAcc *Account) {
 	allAcc, err := LoadAcc()
