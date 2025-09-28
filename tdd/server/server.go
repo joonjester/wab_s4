@@ -2,8 +2,11 @@ package server
 
 import (
 	"encoding/json"
+	"fmt"
 	"net/http"
+	"net/url"
 	"strconv"
+	"tdd/books"
 	"tdd/review"
 )
 
@@ -79,6 +82,25 @@ func getReviewHandler(w http.ResponseWriter, req *http.Request) {
 	json.NewEncoder(w).Encode(rm.GetReviews())
 }
 
+func searchBookHandler(w http.ResponseWriter, req *http.Request) {
+	if req.Method != http.MethodGet {
+		http.Error(w, "Invalid method", http.StatusMethodNotAllowed)
+		return
+	}
+
+	title := req.URL.Query().Get("title")
+	books, err := books.SearchBooks(url.QueryEscape(title))
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	fmt.Fprintf(w, "Title: %s", books.Title)
+	fmt.Fprintf(w, "Authors: %s", books.AuthorName)
+	fmt.Fprintf(w, "First year published: %v", books.PublishedYear)
+	fmt.Fprintf(w, "Language(s): %s", books.Language)
+}
+
 func Rounter() {
 	rm = review.NewReviewManager()
 
@@ -86,6 +108,7 @@ func Rounter() {
 	http.HandleFunc("/get", getReviewHandler)
 	http.HandleFunc("/update", updateReviewHandler)
 	http.HandleFunc("/delete", deleteReviewHandler)
+	http.HandleFunc("/search", searchBookHandler)
 
 	http.ListenAndServe(":8080", nil)
 }

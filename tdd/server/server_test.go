@@ -136,3 +136,29 @@ func TestDeleteReviewHandler(t *testing.T) {
 		})
 	}
 }
+
+func TestSearchBookHandler(t *testing.T) {
+	tests := []struct {
+		name       string
+		method     string
+		title      string
+		wantStatus int
+	}{
+		{"Success", http.MethodGet, "test", http.StatusOK},
+		{"Wrong Method", http.MethodPost, "test", http.StatusMethodNotAllowed},
+		{"No results", http.MethodGet, "//////", http.StatusBadRequest},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			req := httptest.NewRequest(tt.method, "/search?title="+tt.title, nil)
+			w := httptest.NewRecorder()
+
+			searchBookHandler(w, req)
+
+			if w.Code != tt.wantStatus {
+				t.Errorf("got %v, want %v", w.Code, tt.wantStatus)
+			}
+		})
+	}
+}

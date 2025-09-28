@@ -2,8 +2,8 @@
   "feature1": {
     "test_coverage": "86.5%",
     "mutation_score": "100%",
-    "benchmark": "722.910 ns/op",
-    "maintainablitiy_.score_avg": "54.08",
+    "benchmark_score": "722.910 ns/op",
+    "maintainablitiy_score_avg": "54.08",
     "maintainablitiy_score": [
       73,76,50,40,57,78,39,32,44,51,53,53,62,63,53,55,52,54,44,79,49,50,43,48
     ],
@@ -11,5 +11,26 @@
     "cyclo_score": [
       15,11,6,6,6,6,4,4,4,4,3,3,3,3,3,3,3,2,2,1,1,1,1,1
     ],
-  }
+  },
+  "feature2": {
+    "test_coverage": "84.5%",
+    "mutation_score": "100%",
+    "maintainablitiy_score_avg": "52.79",
+    "maintainablitiy_score": [73,76,50,40,57
+,78,39,32,44,52,35,46,51
+,53,53,62,52,62,53,55,52
+,54,44,79,49,50,43,48,49
+    ],
+    "cyclo_score_avg": "4.24",
+    "cyclo_score": [15,11,9,8,6,6,6,6,4,4,4,4,4,3,3,3,3,3,3,3,3,3,2,2,1,1,1,1,1],
+  },
+  "feature3": {
+    "test_coverage": "%",
+    "mutation_score": "%",
+    "maintainablitiy_score_avg": "",
+    "maintainablitiy_score": [
+    ],
+    "cyclo_score_avg": "",
+    "cyclo_score": [],
+  },
 }

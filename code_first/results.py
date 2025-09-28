@@ -27,11 +27,11 @@ plt.title("Mutation Score pro Feature")
 plt.grid(axis="y", linestyle="--", alpha=0.7)
 plt.show()
 
-# --- Benchmark Zeit (in Sekunden) ---
-benchmark_sec = [float(data[f]["benchmark_sec"].replace("s","")) for f in features]
+# --- Benchmark Zeit (Nanosecond pro Operation) ---
+benchmark_sec = [float(data[f]["benchmark_score"].replace("ns/op","")) for f in features]
 plt.figure(figsize=(8,5))
 plt.bar(features, benchmark_sec, color='salmon')
-plt.ylabel("Benchmark Zeit (s)")
+plt.ylabel("Benchmark Zeit (ns/op)")
 plt.title("Benchmark Zeit pro Feature")
 plt.grid(axis="y", linestyle="--", alpha=0.7)
 plt.show()
