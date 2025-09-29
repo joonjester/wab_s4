@@ -1,8 +1,24 @@
 package review
 
 import (
+	"os"
 	"testing"
 )
+
+func setupTestDB(t *testing.T) func() {
+	// Backup original
+	originalDbFile := dbFile
+	dbFile = "test_review_db.json"
+
+	// Create empty file
+	os.WriteFile(dbFile, []byte("[]"), 0644)
+
+	// Return cleanup function
+	return func() {
+		os.Remove(dbFile)
+		dbFile = originalDbFile
+	}
+}
 
 func TestAddReview(t *testing.T) {
 	rm := NewReviewManager()
@@ -42,6 +58,8 @@ func TestAddReview(t *testing.T) {
 	}
 
 	for name, tt := range tests {
+		cleanup := setupTestDB(t)
+		defer cleanup()
 		t.Run(name, func(t *testing.T) {
 			review, err := rm.AddReview(tt.description, tt.recommend, tt.stars)
 			if tt.wantErr {
@@ -64,12 +82,6 @@ func TestAddReview(t *testing.T) {
 }
 
 func TestUpdateReview(t *testing.T) {
-	rm := NewReviewManager()
-
-	rm.AddReview("Beschreibung", "Recommend", 0)
-	rm.AddReview("Beschreibung2", "Not Recommend", 1)
-	rm.AddReview("Beschreibung3", "Recommend", 0)
-
 	tests := map[string]struct {
 		id              int
 		stars           int
@@ -113,9 +125,20 @@ func TestUpdateReview(t *testing.T) {
 			wantErr:   true,
 		},
 	}
+
 	for name, tt := range tests {
 		t.Run(name, func(t *testing.T) {
+			// Setup fresh database for each test
+			cleanup := setupTestDB(t)
+			defer cleanup()
 
+			// Create new ReviewManager and add test data
+			rm := NewReviewManager()
+			rm.AddReview("Beschreibung", "Recommend", 0)
+			rm.AddReview("Beschreibung2", "Not Recommend", 1)
+			rm.AddReview("Beschreibung3", "Recommend", 0)
+
+			// Run the update
 			err := rm.UpdateStatus(tt.id, tt.stars, tt.description, tt.recommend)
 
 			if tt.wantErr {
@@ -124,33 +147,37 @@ func TestUpdateReview(t *testing.T) {
 				}
 				return
 			}
-
 			if err != nil {
 				t.Errorf("unexpected error: %v", err)
 				return
 			}
 
+			// Get reviews and check results
+			reviews, err := rm.GetReviews()
+			if err != nil {
+				t.Fatalf("GetReviews failed: %v", err)
+			}
+
+			if len(reviews) < tt.id {
+				t.Fatalf("Not enough reviews: got %d, need at least %d", len(reviews), tt.id)
+			}
+
+			// Check the updated review
+			updatedReview := reviews[tt.id-1]
+
 			if tt.wantDescription != "" {
-				got := rm.GetReviews()[tt.id-1].Description
-				if got != tt.wantDescription {
-					t.Errorf("got %v, want %v", got, tt.wantDescription)
-					return
+				if updatedReview.Description != tt.wantDescription {
+					t.Errorf("Description: got %v, want %v", updatedReview.Description, tt.wantDescription)
 				}
 			}
-
 			if tt.wantStars != 0 {
-				got := rm.GetReviews()[tt.id-1].Stars
-				if got != tt.wantStars {
-					t.Errorf("got %v, want %v", got, tt.stars)
-					return
+				if updatedReview.Stars != tt.wantStars {
+					t.Errorf("Stars: got %v, want %v", updatedReview.Stars, tt.wantStars)
 				}
 			}
-
 			if tt.wantRecommend != "" {
-				got := rm.GetReviews()[tt.id-1].Recommend
-				if got != tt.wantRecommend {
-					t.Errorf("got %v, want %v", got, tt.wantRecommend)
-					return
+				if updatedReview.Recommend != tt.wantRecommend {
+					t.Errorf("Recommend: got %v, want %v", updatedReview.Recommend, tt.wantRecommend)
 				}
 			}
 		})
@@ -174,25 +201,36 @@ func TestDeleteReview(t *testing.T) {
 
 	for name, tt := range tests {
 		t.Run(name, func(t *testing.T) {
+			// Setup fresh database for each test
+			cleanup := setupTestDB(t)
+			defer cleanup()
+
 			rm := NewReviewManager()
+
+			// Add only ONE review with ID 1
 			_, _ = rm.AddReview("Beschreibung", "Recommend", 5)
 
+			// Try to delete
 			err := rm.DeleteReview(tt.id)
+
 			if tt.wantErr {
 				if err == nil {
 					t.Error("wanted error, got nil")
 				}
 				return
 			}
-
 			if err != nil {
 				t.Errorf("unexpected error: %v", err)
 				return
 			}
 
-			if len(rm.GetReviews()) != 0 {
-				t.Errorf("expected no Reviews, got %d", len(rm.GetReviews()))
-				return
+			reviews, err := rm.GetReviews()
+			if err != nil {
+				t.Fatalf("GetReviews() failed: %v", err)
+			}
+
+			if len(reviews) != 0 {
+				t.Errorf("expected no reviews, got %d: %v", len(reviews), reviews)
 			}
 		})
 	}

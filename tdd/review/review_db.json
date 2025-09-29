@@ -1,0 +1,20 @@
+[
+  {
+    "ID": 3,
+    "Stars": 0,
+    "Description": "Beschreibung3",
+    "Recommend": "Recommend"
+  },
+  {
+    "ID": 1,
+    "Stars": 5,
+    "Description": "Test Test",
+    "Recommend": "Recommend"
+  },
+  {
+    "ID": 2,
+    "Stars": 1,
+    "Description": "Test Test",
+    "Recommend": "Not Recommend"
+  }
+]

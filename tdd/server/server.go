@@ -79,7 +79,12 @@ func getReviewHandler(w http.ResponseWriter, req *http.Request) {
 	}
 
 	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(rm.GetReviews())
+	reviews, err := rm.GetReviews()
+	if err != nil {
+		http.Error(w, "Somethin went wrong", http.StatusInternalServerError)
+	}
+
+	json.NewEncoder(w).Encode(reviews)
 }
 
 func searchBookHandler(w http.ResponseWriter, req *http.Request) {

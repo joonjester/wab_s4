@@ -50,12 +50,17 @@ func (rm *ReviewManager) AddReview(description, recommend string, stars int) (Re
 
 	review := Review{
 		ID:          rm.nextID,
+		Stars:       stars,
 		Description: description,
 		Recommend:   recommend,
 	}
 
 	rm.Reviews = append(rm.Reviews, review)
 	rm.nextID++
+
+	for _, review := range rm.Reviews {
+		AddOrUpdateReview(&review)
+	}
 	return review, nil
 }
 
@@ -100,11 +105,15 @@ func (rm *ReviewManager) UpdateStatus(id, stars int, description, recommend stri
 			if !changed {
 				return errors.New("nothing has changed or its the same")
 			}
-
+			for _, review := range rm.Reviews {
+				AddOrUpdateReview(&review)
+			}
 			return nil
 		}
 	}
-
+	for _, review := range rm.Reviews {
+		AddOrUpdateReview(&review)
+	}
 	return errors.New("Review not found")
 }
 
@@ -113,15 +122,18 @@ func (rm *ReviewManager) DeleteReview(id int) error {
 		return fmt.Errorf("you are not allowed to review")
 	}
 
-	for i := range rm.Reviews {
-		if rm.Reviews[i].ID == id {
-			rm.Reviews = append(rm.Reviews[:i], rm.Reviews[i+1:]...)
-			return nil
-		}
+	err := DeleteReviewId(id)
+	if err != nil {
+		return err
 	}
-	return errors.New("Review not found")
+
+	return nil
 }
 
-func (rm *ReviewManager) GetReviews() []Review {
-	return rm.Reviews
+func (rm *ReviewManager) GetReviews() ([]Review, error) {
+	reviews, err := LoadReview()
+	if err != nil {
+		return nil, err
+	}
+	return reviews, nil
 }
